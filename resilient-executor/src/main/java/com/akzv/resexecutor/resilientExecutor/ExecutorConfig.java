@@ -10,4 +10,11 @@ public class ExecutorConfig<T> {
         this.timeoutConfig = timeoutConfig;
         this.fallback = fallback;
     }
+
+    public ExecutorConfig(RetryConfig retryConfig, TimeoutConfig timeoutConfig) {
+        this.retryConfig = retryConfig;
+        this.timeoutConfig = timeoutConfig;
+        this.fallback = (err) -> null;
+    }
+
 }
