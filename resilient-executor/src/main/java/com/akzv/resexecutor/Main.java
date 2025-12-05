@@ -23,9 +23,12 @@ public class Main {
         ExecutorConfig<String> executorConfig = new ExecutorConfig<>(retryConfig, timeoutConfig, fallbackFunction);
         ExecutorConfig<String> executorConfigWithDefaultFallback = new ExecutorConfig<>(retryConfig, timeoutConfig);
         testExecutor(resilientExecutor, executorConfig);
-        // testExecutor(resilientExecutor, executorConfigWithDefaultFallback);
+        testExecutor(resilientExecutor, executorConfigWithDefaultFallback);
         testExecutorCB(executorConfig);
+        testCircuitBreakerOpen();
         Thread.sleep(1000);
+
+        return;
     }
 
     public static void testExecutor(ResilientExecutor resilientExecutor, ExecutorConfig<String> executorConfig) throws Exception {
@@ -65,6 +68,31 @@ public class Main {
                 System.out.println("Erro capturado (ou CB open): " + ex.getMessage());
             }
 
+        }
+    }
+
+    public static void testCircuitBreakerOpen() {
+        CircuitBreaker circuitBreaker = CircuitBreakerFactory.createDefaultBreaker("breaker-open-test");
+        RetryConfig retry = new RetryConfig(1, new long[]{1});
+        TimeoutConfig timeout = new TimeoutConfig(2000);
+        ExecutorConfig<String> executorConfig = new ExecutorConfig<>(retry, timeout, null);
+        ResilientExecutorCB resilientExecutorCB = new ResilientExecutorCB();
+
+        for (int i = 1; i <= 10; i++) {
+            try {
+                System.out.println("Tentativa CB " + i);
+                String r = resilientExecutorCB.executeWithBreaker(
+                    TestMethods::faultyService,
+                    executorConfig,
+                    circuitBreaker
+                );
+                System.out.println("Resultado: " + r);
+            }
+            catch (Exception ex) {
+                System.out.println("Erro: " + ex.getMessage());
+            }
+
+            System.out.println("Estado atual do CB: " + circuitBreaker.getState());
         }
     }
 }
