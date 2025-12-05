@@ -13,26 +13,6 @@ O objetivo é mostrar como construir, em Java, um executor configurável capaz d
 - **Maven**
 - **Resilience4j** (para o Circuit Breaker)
 
-## Estrutura do projeto
-
-src/
-  main/java/com/akzv/resexecutor/
-    Main.java
-    TestMethods.java
-    resilientExecutor/
-      ResilientExecutor.java
-      ExecutorConfig.java
-      RetryConfig.java
-      TimeoutConfig.java
-      FallbackFunction.java
-      ResilientExecutorWithCB.java
-  docs/
-    executor.md
-    retry.md
-    timeout.md
-    fallback.md
-    circuit-breaker.md
-
 ## Como executar
 
 1. Certifique-se de ter Java e Maven instalados
