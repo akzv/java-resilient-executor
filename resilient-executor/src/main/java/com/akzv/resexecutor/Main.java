@@ -1,10 +1,14 @@
 package com.akzv.resexecutor;
 
+import com.akzv.resexecutor.resilientExecutor.CircuitBreakerFactory;
 import com.akzv.resexecutor.resilientExecutor.ExecutorConfig;
 import com.akzv.resexecutor.resilientExecutor.FallbackFunction;
 import com.akzv.resexecutor.resilientExecutor.ResilientExecutor;
+import com.akzv.resexecutor.resilientExecutor.ResilientExecutorCB;
 import com.akzv.resexecutor.resilientExecutor.RetryConfig;
 import com.akzv.resexecutor.resilientExecutor.TimeoutConfig;
+
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -19,7 +23,9 @@ public class Main {
         ExecutorConfig<String> executorConfig = new ExecutorConfig<>(retryConfig, timeoutConfig, fallbackFunction);
         ExecutorConfig<String> executorConfigWithDefaultFallback = new ExecutorConfig<>(retryConfig, timeoutConfig);
         testExecutor(resilientExecutor, executorConfig);
-        testExecutor(resilientExecutor, executorConfigWithDefaultFallback);
+        // testExecutor(resilientExecutor, executorConfigWithDefaultFallback);
+        testExecutorCB(executorConfig);
+        Thread.sleep(1000);
     }
 
     public static void testExecutor(ResilientExecutor resilientExecutor, ExecutorConfig<String> executorConfig) throws Exception {
@@ -38,5 +44,27 @@ public class Main {
         System.out.println("\nTeste 4: Servico instavel (falha e depois funciona) ####");
         String r4 = resilientExecutor.execute(TestMethods::unstableService, executorConfig);
         System.out.println("Resultado: " + r4);
+    }
+
+    public static void testExecutorCB(ExecutorConfig<String> executorConfig) {
+        System.out.println("\nTeste com CircuitBreaker");
+
+        CircuitBreaker circuitBreaker = CircuitBreakerFactory.createDefaultBreaker("test-breaker");
+        ResilientExecutorCB resilientExecutorCB = new ResilientExecutorCB();
+
+        for (int i = 1; i <= 5; i++) {
+            try {
+                System.out.println("Tentativa CB " + i);
+                String result = resilientExecutorCB.executeWithBreaker(
+                        TestMethods::faultyService,
+                        executorConfig,
+                        circuitBreaker
+                );
+                System.out.println("Resultado: " + result);
+            } catch (Exception ex) {
+                System.out.println("Erro capturado (ou CB open): " + ex.getMessage());
+            }
+
+        }
     }
 }

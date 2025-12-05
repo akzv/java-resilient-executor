@@ -14,7 +14,9 @@ public class ExecutorConfig<T> {
     public ExecutorConfig(RetryConfig retryConfig, TimeoutConfig timeoutConfig) {
         this.retryConfig = retryConfig;
         this.timeoutConfig = timeoutConfig;
-        this.fallback = (err) -> null;
+        this.fallback = (err) -> {
+            throw new RuntimeException("Fallback padrão", err);
+        };
     }
 
 }
